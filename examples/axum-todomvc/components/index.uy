@@ -1,0 +1,219 @@
+import { useState, useRef } from "preact/hooks";
+
+export fn Index() {
+  <Layout>
+    <TodosPage />
+    <Footer />
+  </Layout>
+}
+
+fn Layout(props) {
+  <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <title>TodoMVC demo</title>
+      <link rel="stylesheet" href="/assets/todomvc.css" />
+    </head>
+    <body>
+      {props.children}
+    </body>
+  </html>
+}
+
+fn TodosPage() {
+  let [todos, setTodos] = useState([
+    { "id": 1, "title": "Test Todo", "completed": false },
+    { "id": 2, "title": "Another one", "completed": true },
+  ]);
+  let [filter, setFilter] = useState("all");
+  let inputRef = useRef();
+
+  let showTodos = todos.filter(|t| if filter == "active" {
+    !t.completed
+  } else if filter == "completed" {
+    t.completed
+  } else {
+    true
+  });
+  let itemsLeft = todos.filter(|t| !t.completed).length;
+
+  fn onSubmit(e) {
+    e.preventDefault();
+
+    let title = inputRef.current.value;
+    if title {
+       setTodos(todos.concat([{
+         "id": Math.round(Math.random() * 10000),
+         "title": title,
+         "completed": false,
+       }]));
+       inputRef.current.value = "";
+    };
+  }
+
+  fn onClearCompleted(e) {
+    e.preventDefault();
+    setTodos(todos.filter(|t| !t.completed));
+  }
+
+  fn onEditTodo(id, modifier) {
+    let updated = todos.map(|t| if t.id == id { modifier(t) } else { t });
+    setTodos(updated);
+  }
+
+  fn onDeleteTodo(id) {
+    let updated = todos.filter(|t| t.id != id);
+    setTodos(updated);
+  }
+
+  fn onCompleteAll() {
+    let updated = todos.map(|t| { ...t, "completed": true });
+    setTodos(updated);
+  }
+
+  <main>
+    <section class="todoapp">
+      <header class="header">
+        <h1>Todos</h1>
+        <form class="todoform" onSubmit={onSubmit}>
+          <input
+            ref={inputRef}
+            class="new-todo"
+            name="title"
+            placeholder="What needs to be done?"
+            autofocus
+          />
+        </form>
+      </header>
+      <section class="main">
+        <button
+          type="button"
+          id="toggle-all"
+          class="toggle-all"
+          onClick={onCompleteAll}
+        />
+        <label for="toggle-all">Mark all as complete</label>
+        <ul class="todo-list" id="todo-list">
+          {showTodos.map(|todo| (
+            <TodoItem
+              key={todo.id}
+              todo={todo}
+              onEdit={onEditTodo}
+              onDelete={onDeleteTodo} />
+          ))}
+        </ul>
+      </section>
+    </section>
+    {if todos {
+      <footer class="footer">
+        <span class="todo-count">
+          <strong>{itemsLeft}</strong>
+          {if itemsLeft > 1 { " items " } else { " item " }}
+          left
+        </span>
+        <ul class="filters">
+          <li>
+            <button
+              type="button"
+              class={if filter == "all" { "selected" }}
+              onClick={|| setFilter("all")}
+            >
+              All
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              class={if filter == "active" { "selected" }}
+              onClick={|| setFilter("active")}
+            >
+              Active
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              class={if filter == "completed" { "selected" }}
+              onClick={|| setFilter("completed")}
+            >
+              Completed
+            </button>
+          </li>
+        </ul>
+        {if todos.some(|t| t.completed) {
+          <form onSubmit={onClearCompleted}>
+            <button class="clear-completed" type="submit">
+              Clear completed
+            </button>
+          </form>
+        }}
+      </footer>
+    }}
+  </main>
+}
+
+fn Footer() {
+  <footer class="info">
+    <p>Double-click to edit a todo</p>
+  </footer>
+}
+
+fn TodoItem(props) {
+  let todo = props.todo;
+  let [editing, setEditing] = useState(false);
+  let inputRef = useRef();
+
+  let className = if editing {
+    "editing"
+  } else if todo.completed {
+    "completed"
+  } else {
+    ""
+  };
+
+  fn onComplete(e) {
+    props.onEdit(todo.id, |t| { ...t, "completed": !t.completed });
+  }
+
+  fn onDelete(e) {
+    e.preventDefault();
+    props.onDelete(todo.id);
+  }
+
+  fn onEdit(e) {
+    e.preventDefault();
+
+    let value = inputRef.current.value;
+    if value {
+      props.onEdit(todo.id, |t| { ...t, "title": value });
+    };
+    setEditing(false);
+  }
+
+  fn onStartEdit(e) {
+    if e.detail == 2 {
+       setEditing(true);
+    };
+  }
+
+  <li class={className}>
+    <div class="view">
+      <input
+        class="toggle"
+        type="checkbox"
+        checked={todo.completed}
+        onClick={onComplete}
+      />
+      <label onClick={onStartEdit}>{todo.title}</label>
+      <form onSubmit={onDelete}>
+        <button type="submit" class="destroy" />
+      </form>
+    </div>
+
+    {if editing {
+      <form onSubmit={onEdit}>
+        <input ref={inputRef} class="edit" name="title" value={todo.title} />
+      </form>
+    }}
+  </li>
+}

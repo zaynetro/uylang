@@ -1,0 +1,19 @@
+[package]
+name = "uylang"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ariadne = "0.3"
+anyhow = "1.0"
+base16ct = { version = "0.2", features = ["alloc"] }
+# chumsky = "1.0.0-alpha.4"
+# chumsky = "0.9"
+chumsky = { git = "https://github.com/zesterer/chumsky.git", rev = "ccb7c66", default-features = false, features = ["std", "label"] }
+sha2 = "0.10"
+tracing = "0.1"
+
+[dev-dependencies]
+pretty_assertions = "1.4"

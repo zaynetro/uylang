@@ -1,0 +1,14 @@
+[package]
+name = "example-axum-minimal"
+version = "0.0.1"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1.0"
+axum = { version = "0.6", default-features = false, features = ["tokio", "http1"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tower-http = { version = "0.4.0", features = ["fs"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "std", "ansi"], default-features = false }
+uylang = { path = "../../uylang" }
